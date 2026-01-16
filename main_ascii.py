@@ -9,7 +9,13 @@ data = [
     "***** *   * *   * *   * *     *     *   * *   *   *   *  *  *  *  *     *   * *  ** *   * *     *   * *  *      *   *   *   *  * *  ** **  * *    *    *          * * *              ***  *   *   *   ***       *     *     * *   *     * *   *     * ",
     "*   * ****   ***  ****  ***** *      ***  *   * *****  ***  *   * ***** *   * *   *  ***  *      ***  *   * ****    *   *****   *   *   * *   *   *   *****        ***  *****        ***   ***  ***** ***** ****      * ****   ***      *  ***      * "
 ]
-
+data1 =[
+    "  **** *               *                   *     *         * *     *                      *     ***   * **   ****   *                                        ",  
+    " *   * *     *****     * *****  **** ***** *               * *     *          *   *  ***  ****  * *   **  * *       *                           *   *  ***** ",  
+    "   * * ***** *     ***** * * *  *  * ***** ***** *         * *  ** *    *   * * * * *   * *   * *** * *     ***** ***** *   * *   * *   * ** ** *****     *  ", 
+    " *   * *   * *     *   * *     ***       * *   * *     *   * * *   *    * * * *  ** *   * ****     ** *         *   *   *   *  * *  * * *   *       *    *   ",
+    " ***** ***** ***** ***** *****  *    ***** *   * *     ***** *  ** **** *   * *   *  ***  *         * *     ****    *** *****   *   ** ** ** ** *****  ***** ",
+]
 
 def get_block_start_for_char(ch: str) -> int:
     ch_ord = ord(ch)
@@ -24,16 +30,26 @@ def get_block_start_for_char(ch: str) -> int:
 
 
 def render_text_to_lines(text: str):
-    lines = []
-    upper_text = text.upper()
-    for row in data:
-        line_parts = []
-        for ch in upper_text:
-            n = get_block_start_for_char(ch)
-            seg = row[n:n + 6].ljust(6, " ")
-            line_parts.append(seg)
-        lines.append("".join(line_parts))
+    lines = ["", "", "", "", ""]
+
+    for ch in text:
+        # Decide which dataset to use
+        if ch.islower():
+            dataset = data1
+            ch = ch.upper()   # reuse same index logic
+        else:
+            dataset = data
+
+        for row_index, row in enumerate(dataset):
+            try:
+                n = get_block_start_for_char(ch)
+                seg = row[n:n + 6].ljust(6, " ")
+            except KeyError:
+                seg = " " * 6
+            lines[row_index] += seg
+
     return lines
+
 
 
 def save_lines_to_file(lines, filename):
@@ -76,7 +92,7 @@ class SoftCyberASCIIApp:
 
         self.btn_one_char = tk.Button(self.control_frame, text="Single Char", command=self.one_character, **btn_style)
         self.btn_words = tk.Button(self.control_frame, text="Word <=15", command=self.words_module, **btn_style)
-        self.btn_range = tk.Button(self.control_frame, text="Range A-D", command=self.range_module, **btn_style)
+        self.btn_range = tk.Button(self.control_frame, text="Range A-D format", command=self.range_module, **btn_style)
         self.btn_alpha = tk.Button(self.control_frame, text="Only A-Z", command=self.only_alpha, **btn_style)
         self.btn_num = tk.Button(self.control_frame, text="Only 0-9", command=self.only_num, **btn_style)
         self.btn_exit = tk.Button(self.control_frame, text="EXIT", command=root.quit, **btn_style)
@@ -117,30 +133,35 @@ class SoftCyberASCIIApp:
 
     # ---------- Modules ----------
     def one_character(self):
-        text = self.input_entry.get().upper()
+        text = self.input_entry.get()
+
         if len(text) != 1:
             return messagebox.showinfo("Error", "Enter Only One Character")
         self._show(render_text_to_lines(text))
 
     def words_module(self):
-        text = self.input_entry.get().upper()
+        text = self.input_entry.get()
         if not (1 <= len(text) <= 15):
             return messagebox.showinfo("Error", "Length must be 1-15")
         self._show(render_text_to_lines(text))
 
     def range_module(self):
-        s = self.input_entry.get().upper()
-        if len(s) != 3 or s[1] != "-":
+        text = self.input_entry.get()
+
+        if len(text) != 3 or text[1] != "-":
             return messagebox.showinfo("Error", "A-D Format Required!")
-        start, end = s[0], s[2]
+
+        start, end = text[0], text[2]
         letters = "".join(chr(c) for c in range(ord(start), ord(end) + 1))
         self._show(render_text_to_lines(letters))
 
+
     def only_alpha(self):
-        t = self.input_entry.get().upper()
-        if not t.isalpha():
+        text = self.input_entry.get()
+
+        if not text.isalpha():
             return messagebox.showinfo("Error", "Only Alphabets")
-        self._show(render_text_to_lines(t))
+        self._show(render_text_to_lines(text))
 
     def only_num(self):
         t = self.input_entry.get()
